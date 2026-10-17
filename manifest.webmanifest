@@ -1,0 +1,22 @@
+{
+ "name": "検索らくらく",
+ "short_name": "検索らくらく",
+ "description": "期間・サイト・形式を選んでGoogleなどで検索",
+ "start_url": "./index.html",
+ "scope": "/",
+ "display": "standalone",
+ "background_color": "#ffffff",
+ "theme_color": "#2f855a",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

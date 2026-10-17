@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>検索らくらく</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2b6cb0">
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--fg:#1a202c;--sub:#64748b;--line:#dbe2ea;--acc:#2b6cb0;--accbg:#e3eefb;--ng:#c53030;--ngbg:#fdecec;--chip:#eef1f5}
+@media (prefers-color-scheme:dark){:root{--bg:#12161d;--card:#1c222b;--fg:#e8edf3;--sub:#94a3b8;--line:#2f3844;--acc:#6aa8ef;--accbg:#1d3550;--ng:#f08585;--ngbg:#43201f;--chip:#262e39}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI",sans-serif;
+  padding:0 0 calc(130px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+header{position:sticky;top:0;z-index:5;background:#2b6cb0;color:#fff;padding:calc(env(safe-area-inset-top) + 6px) 16px 6px;display:flex;align-items:center;gap:8px}
+header b{font-size:15px;flex:1}
+header button{background:none;border:0;color:#fff;font-size:20px;padding:2px 6px;cursor:pointer}
+main{max-width:720px;margin:0 auto;padding:12px 16px}
+.kw{display:flex;gap:6px;align-items:center;background:var(--card);border:2px solid var(--acc);border-radius:12px;padding:4px 6px 4px 12px}
+.kw input{flex:1;min-width:0;border:0;background:none;color:var(--fg);font-size:18px;padding:8px 0;outline:none}
+.kw input::-webkit-search-cancel-button{display:none}
+.ib{background:none;border:0;color:var(--sub);font-size:18px;padding:6px;cursor:pointer;border-radius:8px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px}
+.sec h3{margin:0 0 6px;font-size:12px;color:var(--sub);font-weight:600;display:flex;align-items:center;gap:6px}
+.sec h3 .sp{flex:1}
+.sec h3 button{font-size:12px;background:none;border:0;color:var(--acc);cursor:pointer;padding:2px 4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid transparent;background:var(--chip);color:var(--fg);border-radius:999px;padding:7px 12px;font-size:14px;cursor:pointer;line-height:1.2;user-select:none;-webkit-user-select:none}
+.chip.on{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:600}
+.chip.ngon{background:var(--ngbg);border-color:var(--ng);color:var(--ng);font-weight:600}
+.chip .x{margin-left:6px;opacity:.7}
+.chip.add{background:none;border:1px dashed var(--line);color:var(--sub)}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.row label{font-size:13px;color:var(--sub);min-width:5.5em}
+input[type=text],input[type=date]{font-size:16px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);flex:1;min-width:0}
+input[type=date]{flex:0 1 160px}
+.sub{font-size:12px;color:var(--sub)}
+details summary{cursor:pointer;font-size:13px;color:var(--sub);font-weight:600;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"▸ "}
+details[open] summary::before{content:"▾ "}
+.toggle{display:flex;align-items:center;gap:6px;font-size:14px;margin-top:8px}
+.toggle input{width:18px;height:18px}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--card);border-top:1px solid var(--line);padding:8px 16px calc(8px + env(safe-area-inset-bottom))}
+.bar .in{max-width:720px;margin:0 auto}
+.pv{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.ngl{font-size:12px;color:var(--ng);margin-bottom:4px}
+.btns{display:flex;gap:8px}
+.go{flex:1;background:#2b6cb0;color:#fff;border:0;border-radius:12px;font-size:17px;font-weight:700;padding:12px;cursor:pointer}
+.go:disabled{opacity:.45}
+.sb{background:var(--chip);color:var(--fg);border:0;border-radius:12px;font-size:16px;padding:0 14px;cursor:pointer}
+.hist{list-style:none;margin:0;padding:0}
+.hist li{display:flex;align-items:center;gap:6px;border-top:1px solid var(--line);padding:7px 0}
+.hist li:first-child{border-top:0}
+.hist .t{flex:1;min-width:0;cursor:pointer}
+.hist .t div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist .q{font-size:15px}
+.hist .m{font-size:11px;color:var(--sub)}
+.pop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.pop .box{background:var(--card);width:100%;max-width:720px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:85vh;overflow:auto}
+.pop h2{font-size:16px;margin:0 0 10px}
+.btn{background:var(--chip);color:var(--fg);border:0;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer}
+.btn.pri{background:#2b6cb0;color:#fff}
+.toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#222;color:#fff;font-size:13px;padding:8px 14px;border-radius:999px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:.92}
+</style>
+</head>
+<body>
+<header><b>🔍 検索らくらく</b><button id="setBtn" aria-label="設定">⚙</button></header>
+<main>
+  <div class="kw">
+    <input id="kw" type="search" placeholder="検索する言葉" enterkeyhint="search" autocomplete="off">
+    <button class="ib" id="paste" title="貼り付け">📋</button>
+    <button class="ib" id="clr" title="消す">✕</button>
+  </div>
+
+  <div class="sec" id="setsSec" hidden>
+    <h3>よく使う条件<span class="sp"></span><button data-edit="sets">編集</button></h3>
+    <div class="chips" id="sets"></div>
+  </div>
+
+  <div class="sec">
+    <h3>検索先</h3>
+    <div class="chips" id="targets"></div>
+  </div>
+
+  <div class="sec">
+    <h3>期間</h3>
+    <div class="chips" id="periods"></div>
+    <div class="row" id="custom" hidden>
+      <input type="date" id="from"><span class="sub">〜</span><input type="date" id="to">
+    </div>
+  </div>
+
+  <div class="sec">
+    <h3>このサイトだけ<span class="sp"></span><button data-edit="only">編集</button></h3>
+    <div class="chips" id="only"></div>
+    <h3 style="margin-top:10px">このサイトを除く<span class="sp"></span><button data-edit="except">編集</button></h3>
+    <div class="chips" id="except"></div>
+  </div>
+
+  <div class="sec">
+    <h3>ファイル形式</h3>
+    <div class="chips" id="ftypes"></div>
+  </div>
+
+  <div class="sec">
+    <details id="more">
+      <summary>言葉の条件</summary>
+      <div class="row"><label>完全一致</label><input type="text" id="exact" placeholder="この言葉どおり"></div>
+      <div class="row"><label>含めない</label><input type="text" id="ex" placeholder="スペースで区切る"></div>
+      <div class="row"><label>どれか</label><input type="text" id="any" placeholder="スペースで区切る"></div>
+      <div class="row"><label>タイトルに</label><input type="text" id="title"></div>
+      <div class="row"><label>URLに</label><input type="text" id="url"></div>
+      <label class="toggle"><input type="checkbox" id="ja">日本語のページだけ</label>
+    </details>
+  </div>
+
+  <div class="sec" id="histSec" hidden>
+    <h3>履歴<span class="sp"></span><button id="histClr">全部消す</button></h3>
+    <ul class="hist" id="hist"></ul>
+  </div>
+</main>
+
+<div class="bar"><div class="in">
+  <div class="pv" id="pv"></div>
+  <div class="ngl" id="ngl"></div>
+  <div class="btns">
+    <button class="sb" id="reset" title="条件を消す">↺</button>
+    <button class="sb" id="saveSet" title="条件を保存">☆</button>
+    <button class="go" id="go">検索</button>
+  </div>
+</div></div>
+
+<div class="pop" id="pop" hidden><div class="box" id="popBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = "search-easy-v1";
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(D)); } catch(e){} }
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const copy = o => JSON.parse(JSON.stringify(o));
+
+const TARGETS = [
+  {id:"g", name:"Google"}, {id:"img", name:"画像"}, {id:"news", name:"ニュース"}, {id:"vid", name:"動画"},
+  {id:"yt", name:"YouTube"}, {id:"x", name:"X"}, {id:"amazon", name:"Amazon"}, {id:"rakuten", name:"楽天"},
+  {id:"wiki", name:"Wikipedia"}, {id:"map", name:"マップ"}
+];
+const PERIODS = [
+  {id:"", name:"すべて"}, {id:"h", name:"1時間"}, {id:"d", name:"24時間"}, {id:"w", name:"1週間"}, {id:"m", name:"1か月"},
+  {id:"m3", name:"3か月"}, {id:"m6", name:"半年"}, {id:"y", name:"1年"}, {id:"c", name:"日付で指定"}
+];
+const FTYPES = [{id:"", name:"指定なし"}, {id:"pdf", name:"PDF"}, {id:"xlsx", name:"Excel"}, {id:"docx", name:"Word"}, {id:"pptx", name:"PowerPoint"}, {id:"csv", name:"CSV"}];
+const DEF_ONLY = ["go.jp", "mhlw.go.jp", "nta.go.jp", "laws.e-gov.go.jp", "wikipedia.org", "note.com"];
+const DEF_EXCEPT = ["chiebukuro.yahoo.co.jp", "pinterest.jp", "pinterest.com"];
+const BAR_PERIOD = {"1h":"h", "1d":"d", "1w":"w", "1m":"m", "3m":"m3", "6m":"m6", "1y":"y"};
+const BAR_TARGET = {"@g":"g", "@img":"img", "@news":"news", "@vid":"vid", "@yt":"yt", "@x":"x", "@amazon":"amazon", "@rakuten":"rakuten", "@wiki":"wiki", "@map":"map"};
+
+let D = load();
+D.only = D.only || DEF_ONLY.slice();
+D.except = D.except || DEF_EXCEPT.slice();
+D.hist = D.hist || [];
+D.sets = D.sets || [];
+if (D.newTab === undefined) D.newTab = true;
+
+const blank = () => ({target:"g", period:"", from:"", to:"", only:[], except:[], ftype:"", exact:"", ex:"", any:"", title:"", url:"", ja:false});
+let S = Object.assign(blank(), D.last || {});
+let editing = "";
+
+// ---- 日付
+const pad = n => String(n).padStart(2, "0");
+const ymd = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const mdy = s => { const [y, m, d] = s.split("-"); return (+m) + "/" + (+d) + "/" + y; };
+function range(s){
+  if (s.period === "c") return {from:s.from, to:s.to};
+  const f = new Date();
+  if (s.period === "h" || s.period === "d") f.setDate(f.getDate() - 1);
+  else if (s.period === "w") f.setDate(f.getDate() - 7);
+  else if (s.period === "m") f.setMonth(f.getMonth() - 1);
+  else if (s.period === "m3") f.setMonth(f.getMonth() - 3);
+  else if (s.period === "m6") f.setMonth(f.getMonth() - 6);
+  else if (s.period === "y") f.setFullYear(f.getFullYear() - 1);
+  else return {from:"", to:""};
+  return {from:ymd(f), to:""};
+}
+function addDay(s){ const d = new Date(s + "T00:00:00"); d.setDate(d.getDate() + 1); return ymd(d); }
+
+// ---- 組み立て
+const words = s => s.trim().split(/[\s　]+/).filter(Boolean);
+function opsQuery(s, kw, ops){
+  const p = [];
+  if (kw.trim()) p.push(kw.trim());
+  if (s.exact.trim()) p.push('"' + s.exact.trim().replace(/"/g, "") + '"');
+  const any = words(s.any);
+  if (any.length) p.push(any.length > 1 ? "(" + any.join(" OR ") + ")" : any[0]);
+  words(s.ex).forEach(w => p.push("-" + w));
+  if (ops) {
+    if (s.title.trim()) p.push("intitle:" + s.title.trim().replace(/\s+/g, ""));
+    if (s.url.trim()) p.push("inurl:" + s.url.trim().replace(/\s+/g, ""));
+    if (s.only.length) p.push(s.only.length > 1 ? "(" + s.only.map(x => "site:" + x).join(" OR ") + ")" : "site:" + s.only[0]);
+    s.except.forEach(x => p.push("-site:" + x));
+    if (s.ftype) p.push("filetype:" + s.ftype);
+  }
+  return p.join(" ");
+}
+function build(s, kw){
+  const ng = [];
+  const pName = (PERIODS.find(p => p.id === s.period) || {}).name;
+  const noOps = () => {
+    if (s.only.length || s.except.length) ng.push("サイト");
+    if (s.ftype) ng.push("ファイル形式");
+    if (s.title.trim() || s.url.trim()) ng.push("タイトル・URL");
+  };
+  const t = s.target;
+  let u, q;
+  if (["g", "img", "news", "vid"].includes(t)) {
+    q = opsQuery(s, kw, true);
+    const P = new URLSearchParams({q});
+    if (t === "img") P.set("tbm", "isch");
+    if (t === "news") P.set("tbm", "nws");
+    if (t === "vid") P.set("tbm", "vid");
+    if (["h", "d", "w", "m", "y"].includes(s.period)) P.set("tbs", "qdr:" + s.period);
+    else if (s.period) {
+      const r = range(s);
+      if (r.from || r.to) {
+        const a = ["cdr:1"];
+        if (r.from) a.push("cd_min:" + mdy(r.from));
+        a.push("cd_max:" + mdy(r.to || ymd(new Date())));
+        P.set("tbs", a.join(","));
+      }
+    }
+    if (s.ja) P.set("lr", "lang_ja");
+    u = "https://www.google.com/search?" + P.toString();
+  } else if (t === "x") {
+    q = opsQuery(s, kw, false);
+    if (s.period) {
+      const r = range(s);
+      if (r.from) q += " since:" + r.from;
+      if (r.to) q += " until:" + addDay(r.to);
+      if (s.period === "h") ng.push("1時間（24時間で検索）");
+    }
+    if (s.ja) q += " lang:ja";
+    noOps();
+    u = "https://x.com/search?" + new URLSearchParams({q:q.trim(), src:"typed_query", f:"live"}).toString();
+  } else if (t === "yt") {
+    q = opsQuery(s, kw, false);
+    const P = new URLSearchParams({search_query:q});
+    const SP = {h:"EgIIAQ==", d:"EgIIAg==", w:"EgIIAw==", m:"EgIIBA==", y:"EgIIBQ=="};
+    if (s.period) { if (SP[s.period]) P.set("sp", SP[s.period]); else ng.push("期間「" + pName + "」"); }
+    noOps();
+    if (s.ja) ng.push("日本語だけ");
+    u = "https://www.youtube.com/results?" + P.toString();
+  } else {
+    q = [kw.trim(), s.exact.trim(), s.any.trim()].filter(Boolean).join(" ");
+    if (s.period) ng.push("期間");
+    noOps();
+    if (s.ex.trim()) ng.push("含めない");
+    if (s.ja) ng.push("日本語だけ");
+    const e = encodeURIComponent(q);
+    u = {amazon:"https://www.amazon.co.jp/s?k=" + e,
+         rakuten:"https://search.rakuten.co.jp/search/mall/" + e + "/",
+         wiki:"https://ja.wikipedia.org/w/index.php?search=" + e,
+         map:"https://www.google.com/maps/search/?api=1&query=" + e}[t];
+  }
+  return {url:u, query:q.trim(), ng};
+}
+
+// ---- アドレスバーから（?q=）
+function fromBar(raw){
+  const s = blank(), rest = [];
+  words(raw).forEach(w => {
+    const l = w.toLowerCase();
+    const set = w[0] === "#" ? D.sets.find(x => x.name === w.slice(1)) : null;
+    if (BAR_PERIOD[l]) s.period = BAR_PERIOD[l];
+    else if (BAR_TARGET[l]) s.target = BAR_TARGET[l];
+    else if (FTYPES.some(f => f.id && f.id === l)) s.ftype = l;
+    else if (/^(199\d|20\d\d)$/.test(w)) { s.period = "c"; s.from = w + "-01-01"; s.to = w + "-12-31"; }
+    else if (set) Object.assign(s, copy(set.s));
+    else rest.push(w);
+  });
+  return {s, kw:rest.join(" ")};
+}
+function record(kw, s){
+  const k = JSON.stringify([kw.trim(), s]);
+  D.hist = D.hist.filter(h => JSON.stringify([h.kw, h.s]) !== k);
+  D.hist.unshift({kw:kw.trim(), s:copy(s), ts:Date.now()});
+  D.hist = D.hist.slice(0, 50);
+  save();
+}
+const qp = new URLSearchParams(location.search).get("q");
+if (qp && qp.trim()) {
+  const r = fromBar(qp), b = build(r.s, r.kw);
+  record(r.kw, r.s);
+  location.replace(b.url);
+} else {
+
+// ---- 画面
+const chipHtml = (id, name, on) => `<span class="chip${on ? " on" : ""}" data-id="${esc(id)}">${esc(name)}</span>`;
+function render(){
+  $("targets").innerHTML = TARGETS.map(t => chipHtml(t.id, t.name, S.target === t.id)).join("");
+  $("periods").innerHTML = PERIODS.map(p => chipHtml(p.id, p.name, S.period === p.id)).join("");
+  $("custom").hidden = S.period !== "c";
+  $("ftypes").innerHTML = FTYPES.map(f => chipHtml(f.id, f.name, S.ftype === f.id)).join("");
+  siteChips("only", "on"); siteChips("except", "ngon");
+  $("setsSec").hidden = !D.sets.length;
+  $("sets").innerHTML = D.sets.map((x, i) => `<span class="chip" data-i="${i}">${esc(x.name)}${editing === "sets" ? '<span class="x">✕</span>' : ""}</span>`).join("");
+  document.querySelectorAll("[data-edit]").forEach(b => b.textContent = editing === b.dataset.edit ? "完了" : "編集");
+  renderHist();
+  preview();
+}
+function siteChips(kind, cls){
+  const ed = editing === kind;
+  $(kind).innerHTML = D[kind].map(x => `<span class="chip${S[kind].includes(x) ? " " + cls : ""}" data-id="${esc(x)}">${esc(x)}${ed ? '<span class="x">✕</span>' : ""}</span>`).join("")
+    + `<span class="chip add" data-add="1">＋</span>`;
+}
+function preview(){
+  const b = build(S, $("kw").value);
+  $("pv").textContent = b.query || " ";
+  $("ngl").textContent = b.ng.length ? "効かない条件：" + b.ng.join("・") : "";
+  $("go").disabled = !b.query;
+  D.last = S; save();
+}
+function syncForm(){
+  ["exact", "ex", "any", "title", "url"].forEach(k => $(k).value = S[k]);
+  $("ja").checked = S.ja; $("from").value = S.from; $("to").value = S.to;
+  $("more").open = !!(S.exact || S.ex || S.any || S.title || S.url || S.ja);
+}
+function condText(s){
+  const a = [];
+  if (s.period === "c") a.push((s.from || "") + "〜" + (s.to || ""));
+  else if (s.period) a.push(PERIODS.find(x => x.id === s.period).name);
+  if (s.only.length) a.push(s.only.join("/") + "だけ");
+  if (s.except.length) a.push(s.except.length + "サイト除く");
+  if (s.ftype) a.push(s.ftype.toUpperCase());
+  if (s.exact) a.push('"' + s.exact + '"');
+  if (s.ex) a.push("−" + s.ex);
+  if (s.any) a.push("どれか:" + s.any);
+  if (s.title) a.push("タイトル:" + s.title);
+  if (s.url) a.push("URL:" + s.url);
+  if (s.ja) a.push("日本語");
+  return a.join("・");
+}
+const targetName = id => (TARGETS.find(x => x.id === id) || {}).name || "";
+function renderHist(){
+  $("histSec").hidden = !D.hist.length;
+  $("hist").innerHTML = D.hist.map((h, i) => {
+    const c = condText(h.s);
+    return `<li><div class="t" data-i="${i}"><div class="q">${esc(h.kw || "（言葉なし）")}</div><div class="m">${esc(targetName(h.s.target) + (c ? "・" + c : ""))}</div></div>`
+      + `<button class="ib" data-del="${i}" title="消す">✕</button></li>`;
+  }).join("");
+}
+let tt;
+function toast(m){ const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 1600); }
+
+function openUrl(url){
+  if (!D.newTab) { location.href = url; return; }
+  const a = document.createElement("a");
+  a.href = url; a.target = "_blank"; a.rel = "noopener";
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function go(){
+  const kw = $("kw").value, b = build(S, kw);
+  if (!b.query) return;
+  record(kw, S); renderHist(); openUrl(b.url);
+}
+
+// ---- 操作
+$("kw").addEventListener("input", preview);
+$("kw").addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); go(); } });
+$("clr").onclick = () => { $("kw").value = ""; $("kw").focus(); preview(); };
+$("paste").onclick = async () => {
+  try { const t = await navigator.clipboard.readText(); if (t) { $("kw").value = t.trim(); preview(); } } catch(e) { toast("貼り付けできませんでした"); }
+};
+$("go").onclick = go;
+$("targets").onclick = e => { const c = e.target.closest(".chip"); if (!c) return; S.target = c.dataset.id; render(); };
+$("periods").onclick = e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  S.period = c.dataset.id;
+  if (S.period === "c" && !S.from && !S.to) {
+    const d = new Date(); d.setFullYear(d.getFullYear() - 1);
+    S.from = ymd(d); S.to = ymd(new Date()); $("from").value = S.from; $("to").value = S.to;
+  }
+  render();
+};
+$("from").onchange = () => { S.from = $("from").value; preview(); };
+$("to").onchange = () => { S.to = $("to").value; preview(); };
+$("ftypes").onclick = e => { const c = e.target.closest(".chip"); if (!c) return; S.ftype = c.dataset.id; render(); };
+["exact", "ex", "any", "title", "url"].forEach(k => $(k).addEventListener("input", () => { S[k] = $(k).value; preview(); }));
+$("ja").onchange = () => { S.ja = $("ja").checked; preview(); };
+
+["only", "except"].forEach(kind => {
+  const other = kind === "only" ? "except" : "only";
+  $(kind).onclick = e => {
+    const c = e.target.closest(".chip"); if (!c) return;
+    if (c.dataset.add) { askSite(kind); return; }
+    const id = c.dataset.id;
+    if (editing === kind) {
+      if (!confirm(id + " を消しますか？")) return;
+      D[kind] = D[kind].filter(x => x !== id); S[kind] = S[kind].filter(x => x !== id); save(); render(); return;
+    }
+    S[kind] = S[kind].includes(id) ? S[kind].filter(x => x !== id) : S[kind].concat(id);
+    S[other] = S[other].filter(x => x !== id);
+    render();
+  };
+});
+document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { editing = editing === b.dataset.edit ? "" : b.dataset.edit; render(); });
+
+function cleanSite(v){
+  v = v.trim().toLowerCase().replace(/^site:/, "").replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "");
+  return /^[a-z0-9.-]+\.[a-z0-9-]+$/.test(v) ? v : "";
+}
+function popup(html, onReady){ $("popBox").innerHTML = html; $("pop").hidden = false; onReady(); }
+function closePop(){ $("pop").hidden = true; }
+$("pop").onclick = e => { if (e.target === $("pop")) closePop(); };
+function askName(title, sub, ph, okLabel, onOk){
+  popup(`<h2>${esc(title)}</h2>${sub ? `<div class="sub">${esc(sub)}</div>` : ""}
+    <div class="row"><input type="text" id="popIn" placeholder="${esc(ph)}" autocapitalize="off" autocorrect="off"></div>
+    <div class="sub" id="popErr" style="color:var(--ng)"></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn" id="pc">やめる</button><button class="btn pri" id="pa">${esc(okLabel)}</button></div>`, () => {
+    const inp = $("popIn"); inp.focus();
+    const ok = () => { const err = onOk(inp.value); if (err) $("popErr").textContent = err; else closePop(); };
+    $("pa").onclick = ok; $("pc").onclick = closePop;
+    inp.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) ok(); });
+  });
+}
+function askSite(kind){
+  const other = kind === "only" ? "except" : "only";
+  askName(kind === "only" ? "このサイトだけ に足す" : "このサイトを除く に足す", "", "例 mhlw.go.jp", "足す", raw => {
+    const v = cleanSite(raw);
+    if (!v) return "ドメインの形になっていません";
+    if (!D[kind].includes(v)) D[kind].push(v);
+    if (!S[kind].includes(v)) S[kind].push(v);
+    S[other] = S[other].filter(x => x !== v);
+    save(); render();
+  });
+}
+$("saveSet").onclick = () => {
+  const c = condText(S);
+  askName("条件を保存", targetName(S.target) + (c ? "・" + c : ""), "名前（例 厚労省PDF）", "保存", raw => {
+    const n = raw.trim().replace(/\s+/g, "_");
+    if (!n) return "名前を入れてください";
+    D.sets = D.sets.filter(x => x.name !== n);
+    D.sets.push({name:n, s:copy(S)});
+    save(); render(); toast("「" + n + "」を保存しました");
+  });
+};
+$("sets").onclick = e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  const i = +c.dataset.i, x = D.sets[i];
+  if (editing === "sets") {
+    if (!confirm("「" + x.name + "」を消しますか？")) return;
+    D.sets.splice(i, 1); save(); if (!D.sets.length) editing = ""; render(); return;
+  }
+  S = Object.assign(blank(), copy(x.s)); syncForm(); render(); toast("「" + x.name + "」の条件にしました");
+};
+$("reset").onclick = () => { const t = S.target; S = blank(); S.target = t; syncForm(); render(); toast("条件を消しました"); };
+
+$("hist").onclick = e => {
+  const d = e.target.closest("[data-del]");
+  if (d) { D.hist.splice(+d.dataset.del, 1); save(); renderHist(); return; }
+  const t = e.target.closest(".t"); if (!t) return;
+  const h = D.hist[+t.dataset.i];
+  $("kw").value = h.kw; S = Object.assign(blank(), copy(h.s)); syncForm(); render();
+  window.scrollTo({top:0, behavior:"smooth"});
+};
+$("histClr").onclick = () => { if (!confirm("履歴を全部消しますか？")) return; D.hist = []; save(); renderHist(); };
+
+$("setBtn").onclick = () => {
+  const bar = location.origin + location.pathname + "?q=%s";
+  popup(`<h2>設定</h2>
+    <label class="toggle"><input type="checkbox" id="nt" ${D.newTab ? "checked" : ""}>新しいタブで開く</label>
+    <div class="row"><label>アドレスバー用</label><input type="text" id="barUrl" readonly value="${esc(bar)}"><button class="btn" id="cp">コピー</button></div>
+    <div class="sub" style="margin-top:6px;line-height:1.6">期間 1h 1d 1w 1m 3m 6m 1y 2025／形式 pdf xlsx docx pptx csv／検索先 @img @news @vid @yt @x @amazon @rakuten @wiki @map／保存した条件 #名前</div>
+    <div class="row" style="justify-content:flex-end"><button class="btn pri" id="pc">閉じる</button></div>`, () => {
+    $("nt").onchange = () => { D.newTab = $("nt").checked; save(); };
+    $("cp").onclick = async () => { try { await navigator.clipboard.writeText(bar); toast("コピーしました"); } catch(e) { $("barUrl").select(); } };
+    $("pc").onclick = closePop;
+  });
+};
+
+syncForm(); render();
+$("kw").focus();
+}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
